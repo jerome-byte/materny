@@ -1,0 +1,60 @@
+name: materny
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  # --- Architecture & État ---
+  provider: ^6.1.2
+  get_it: ^7.6.7
+
+  # --- Backend (Supabase) ---
+  supabase_flutter: ^2.5.0 # Version majeure récente
+
+  # --- UI & UX ---
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
+  intl: ^0.19.0
+  fl_chart: ^0.68.0 # Pour les statistiques visuelles
+
+  # --- Fonctionnalités ---
+  firebase_messaging: ^14.9.0
+  shared_preferences: ^2.2.3
+    # Pour générer les PDF
+  pdf: ^3.10.7
+  # Pour sauvegarder le fichier sur le téléphone
+  path_provider: ^2.1.1
+  # Pour ouvrir le fichier PDF
+  open_filex: ^4.4.0
+  url_launcher: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo.png
+    
+    
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png" # Le chemin de votre image
+  adaptive_icon_background: "#FFFFFF" # Couleur de fond (bleu)
+  adaptive_icon_foreground: "assets/logo.png"
