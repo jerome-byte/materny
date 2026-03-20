@@ -116,6 +116,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 20),
 
                   // Ligne de Statistiques
+                  // NOTE : "Expanded" doit TOUJOURS être un enfant direct d'un widget Flex
+                  // (Row, Column ou Flex). Ne jamais le placer à l'intérieur d'un
+                  // GestureDetector, InkWell, Container, etc.
+                  // Ici, chaque "Expanded" est bien un enfant direct du "Row".
                   Row(
                     children: [
                       Expanded(
@@ -142,8 +146,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 10),
                                     Row(
                     children: [
+                      // CORRECTION : On met "Expanded" comme enfant direct du "Row",
+                      // puis "InkWell" à l'intérieur de "Expanded".
+                      // ERREUR AVANT : Si on mettait "Expanded" à l'intérieur de "InkWell",
+                      // Flutter lançait une erreur "Incorrect use of ParentDataWidget"
+                      // car "Expanded" cherchait un parent Flex (Row/Column) mais
+                      // trouvait un "InkWell" (GestureDetector) à la place.
                       Expanded(
-                        child: InkWell( // Rend la carte cliquable
+                        child: InkWell(
                           onTap: () {
                             Navigator.push(context, MaterialPageRoute(builder: (_) => const PerdusDeVueScreen()));
                           },
@@ -254,10 +264,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // IMPORTANT : Cette méthode retourne un simple Container, SANS "Expanded".
+  // C'est l'appelant (le parent) qui décide comment gérer la taille avec
+  // "Expanded", "Flexible", etc. Cela permet de réutiliser ce widget
+  // dans différents contextes (Row, Column, InkWell...) sans conflit.
   Widget _buildStatCard(BuildContext context, {
-    required String title, 
-    required String count, 
-    required IconData icon, 
+    required String title,
+    required String count,
+    required IconData icon,
     required Color color
   }) {
     return Container(
