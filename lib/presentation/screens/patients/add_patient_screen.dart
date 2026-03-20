@@ -26,10 +26,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   late String _genre;
   DateTime? _selectedDateRdv;
-  String _typeRdv = 'CPN';
+  
 
   // Nouveaux champs pour la vaccination
-  String? _selectedVaccineKey; // Clé du vaccin sélectionné
+
   final Map<String, Map<String, String>> _vaccines = {
     'BCG': {
       'name': 'BCG (Tuberculose)',
