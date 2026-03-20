@@ -1,24 +1,19 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:materny/data/services/supabase_service.dart';
 import 'package:materny/presentation/providers/auth_provider.dart';
-import 'package:materny/presentation/screens/splash_screen.dart'; // Nous le créerons après
+import 'package:materny/presentation/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
-import 'presentation/providers/patient_provider.dart'; // Ajoutez cet import
+import 'presentation/providers/patient_provider.dart';
 import 'presentation/screens/patients/add_patient_screen.dart';
 import 'presentation/screens/rdv/add_rdv_screen.dart';
 import 'data/models/patient_model.dart';
 import 'presentation/screens/auth/patient_login_screen.dart';
 import 'presentation/screens/patient_dashboard.dart';
+import 'core/theme/app_theme.dart';
 
 void main() async {
-  // Nécessaire pour les plugins natifs (Supabase/SQLite)
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialisation de Supabase
   await SupabaseService.initialize();
-
   runApp(const MyApp());
 }
 
@@ -29,25 +24,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Nous enregistrerons nos providers ici plus tard
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => PatientProvider()), // Ajoutez cette ligne
+        ChangeNotifierProvider(create: (_) => PatientProvider()),
       ],
       child: MaterialApp(
-        title: 'Materny ',
+        title: 'Materny',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true, // Design moderne
-          fontFamily: 'Poppins', // Vous pourrez ajouter cette police plus tard
-        ),
-        home: const SplashScreen(), // Écran de chargement initial
-         routes: {
-        '/add-patient': (context) => const AddPatientScreen(),
-         '/add-rdv': (context) => AddRdvScreen(patient: ModalRoute.of(context)!.settings.arguments as PatientModel), // Ajoutez ceci
-         '/patient-login': (context) => const PatientLoginScreen(), // Ajout
-        '/patient-dashboard': (context) => const PatientDashboard(), 
-      },
+        theme: AppTheme.light,
+        home: const SplashScreen(),
+        routes: {
+          '/add-patient': (context) => const AddPatientScreen(),
+          '/add-rdv': (context) => AddRdvScreen(
+              patient: ModalRoute.of(context)!.settings.arguments as PatientModel),
+          '/patient-login': (context) => const PatientLoginScreen(),
+          '/patient-dashboard': (context) => const PatientDashboard(),
+        },
       ),
     );
   }
