@@ -118,20 +118,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // Ligne de Statistiques
                   Row(
                     children: [
-                      _buildStatCard(
-                        context,
-                        title: "Total Patients",
-                        count: provider.totalPatients.toString(),
-                        icon: Icons.people,
-                        color: Colors.blue,
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          title: "Total Patients",
+                          count: provider.totalPatients.toString(),
+                          icon: Icons.people,
+                          color: Colors.blue,
+                        ),
                       ),
                       const SizedBox(width: 10),
-                      _buildStatCard(
-                        context,
-                        title: "RDV Aujourd'hui",
-                        count: provider.rdvAujourdhui.toString(),
-                        icon: Icons.calendar_today,
-                        color: Colors.orange,
+                      Expanded(
+                        child: _buildStatCard(
+                          context,
+                          title: "RDV Aujourd'hui",
+                          count: provider.rdvAujourdhui.toString(),
+                          icon: Icons.calendar_today,
+                          color: Colors.orange,
+                        ),
                       ),
                     ],
                   ),
@@ -256,8 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required IconData icon, 
     required Color color
   }) {
-    return Expanded(
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
@@ -280,7 +283,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }
