@@ -1,13 +1,14 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
+import '../../core/theme/app_theme.dart';
 import 'patients/add_patient_screen.dart';
 import 'perdus_de_vue_screen.dart';
 import 'reports_screen.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -16,287 +17,599 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-    @override
+  @override
   void initState() {
     super.initState();
-    // Nettoyer les anciennes données immédiatement pour éviter le flash
     Future.microtask(() {
-       Provider.of<PatientProvider>(context, listen: false).reset();
-       // Puis charger les nouvelles données
-       Provider.of<PatientProvider>(context, listen: false).fetchDashboardData();
+      Provider.of<PatientProvider>(context, listen: false).reset();
+      Provider.of<PatientProvider>(context, listen: false).fetchDashboardData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Tableau de Bord", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF1E88E5),
-        actions: [
-                     IconButton(
-            icon: const Icon(Icons.folder_special, color: Colors.white),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
-            },
-          ),
-
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () {
-              Provider.of<AuthProvider>(context, listen: false).logout();
-              Navigator.pushReplacementNamed(context, '/');
-            },
-          )
-        ],
-      ),
-            body: Consumer<PatientProvider>(
-        builder: (context, provider, child) {
-          
-          // AFFICHAGE DE L'ERREUR
+      backgroundColor: AppTheme.bg,
+      body: Consumer<PatientProvider>(
+        builder: (context, provider, _) {
           if (provider.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 50),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Erreur de chargement",
-                      style: TextStyle(color: Colors.red, fontSize: 18),
-                    ),
-                    Text(
-                      provider.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => provider.fetchDashboardData(),
-                      child: Text("Réessayer"),
-                    )
-                  ],
-                ),
-              ),
-            );
+            return _buildError(provider);
           }
-
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildSkeleton();
           }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchDashboardData(),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   // Section Titre (Dynamique)
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, child) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Bonjour, ${auth.agentName ?? 'Agent'}",
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            auth.hospitalName ?? "Centre de Santé",
-                            style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 95, 94, 94)),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Ligne de Statistiques
-                  // NOTE : "Expanded" doit TOUJOURS être un enfant direct d'un widget Flex
-                  // (Row, Column ou Flex). Ne jamais le placer à l'intérieur d'un
-                  // GestureDetector, InkWell, Container, etc.
-                  // Ici, chaque "Expanded" est bien un enfant direct du "Row".
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          title: "Total Patients",
-                          count: provider.totalPatients.toString(),
-                          icon: Icons.people,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          title: "RDV Aujourd'hui",
-                          count: provider.rdvAujourdhui.toString(),
-                          icon: Icons.calendar_today,
-                          color: Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                                    Row(
-                    children: [
-                      // CORRECTION : On met "Expanded" comme enfant direct du "Row",
-                      // puis "InkWell" à l'intérieur de "Expanded".
-                      // ERREUR AVANT : Si on mettait "Expanded" à l'intérieur de "InkWell",
-                      // Flutter lançait une erreur "Incorrect use of ParentDataWidget"
-                      // car "Expanded" cherchait un parent Flex (Row/Column) mais
-                      // trouvait un "InkWell" (GestureDetector) à la place.
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PerdusDeVueScreen()));
-                          },
-                          child: _buildStatCard(
-                            context,
-                            title: "Perdus de vue",
-                            count: provider.perdusDeVue.toString(),
-                            icon: Icons.warning,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Section RDV
-                  const Text(
-                    "Rendez-vous à venir",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-
-                  if (provider.rdvDuJour.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: Text("Aucun rendez-vous prévu pour les prochains jours."),
-                      ),
-                    )
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: provider.rdvDuJour.length,
-                      itemBuilder: (ctx, index) {
-                        final rdv = provider.rdvDuJour[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Partie Gauche : Infos
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "${rdv.patientPrenom} ${rdv.patientNom}",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 4),
-                                                                            Text(
-                                        "${rdv.typeRdv} - ${DateFormat('dd/MM HH:mm').format(rdv.dateHeure)}",
-                                        style: const TextStyle(color: Colors.grey),
-                                      ),
-                                      // Affichage du nom du vaccin si renseigné
-                                      if (rdv.nomVaccin != null && rdv.nomVaccin!.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(top: 4.0),
-                                          child: Text(
-                                            "Vaccin: ${rdv.nomVaccin}",
-                                            style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w500),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-
-                                // Partie Droite : Action ou Statut
-                                if (rdv.statut == 'PLANIFIE')
-                                  IconButton(
-                                    icon: const Icon(Icons.check_circle, color: Colors.green, size: 32),
-                                    onPressed: () async {
-                                      // On appelle la fonction du provider
-                                      await Provider.of<PatientProvider>(context, listen: false)
-                                          .markRdvAsDone(rdv.id);
-                                    },
-                                  )
-                                else
-                                  const Chip(
-                                    label: Text("Fait", style: TextStyle(color: Colors.white)),
-                                    backgroundColor: Colors.green,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
-            ),
-          );
+          return _buildContent(context, provider);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPatientScreen()));
-        },
-        backgroundColor: const Color(0xFF1E88E5),
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_dashboard',
+        onPressed: () => Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const AddPatientScreen())),
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.person_add_outlined, size: 20),
+        label: Text(
+          'Nouveau patient',
+          style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 
-  // IMPORTANT : Cette méthode retourne un simple Container, SANS "Expanded".
-  // C'est l'appelant (le parent) qui décide comment gérer la taille avec
-  // "Expanded", "Flexible", etc. Cela permet de réutiliser ce widget
-  // dans différents contextes (Row, Column, InkWell...) sans conflit.
-  Widget _buildStatCard(BuildContext context, {
-    required String title,
-    required String count,
-    required IconData icon,
-    required Color color
-  }) {
-    return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 10),
-            Text(
-              count,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+  Widget _buildContent(BuildContext context, PatientProvider provider) {
+    return RefreshIndicator(
+      onRefresh: () => provider.fetchDashboardData(),
+      color: AppTheme.primary,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // ── App Bar ─────────────────────────────────────────────────────
+          SliverAppBar(
+            expandedHeight: 180,
+            collapsedHeight: 60,
+            pinned: true,
+            backgroundColor: AppTheme.primary,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.folder_special_outlined,
+                    color: Colors.white, size: 22),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ReportsScreen())),
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout_outlined,
+                    color: Colors.white, size: 22),
+                onPressed: () {
+                  Provider.of<AuthProvider>(context, listen: false).logout();
+                  Navigator.pushReplacementNamed(context, '/');
+                },
+              ),
+              const SizedBox(width: 4),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: -40,
+                      right: -30,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white
+                              .withValues(alpha: 0.04),
+                        ),
+                      ),
+                    ),
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+                        child: Consumer<AuthProvider>(
+                          builder: (context, auth, _) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Bonjour,',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 13,
+                                  color: Colors.white
+                                      .withValues(alpha: 0.55),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                auth.agentName ?? 'Agent',
+                                style: GoogleFonts.cormorantGaramond(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.local_hospital_outlined,
+                                      size: 13,
+                                      color: AppTheme.accent
+                                          .withValues(alpha: 0.8)),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    auth.hospitalName ?? 'Centre de Santé',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 13,
+                                      color: Colors.white
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 4),
+          ),
+
+          // ── Stats Row ────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('VUE D\'ENSEMBLE',
+                      style: AppTheme.sectionLabel),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          label: 'Patients',
+                          value: provider.totalPatients.toString(),
+                          icon: Icons.people_outline_rounded,
+                          color: AppTheme.primary,
+                          bgColor: const Color(0xFFEAF2EE),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _StatCard(
+                          label: "RDV aujourd'hui",
+                          value: provider.rdvAujourdhui.toString(),
+                          icon: Icons.calendar_today_outlined,
+                          color: AppTheme.warning,
+                          bgColor: AppTheme.warningSoft,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (_) => const PerdusDeVueScreen())),
+                    child: _StatCard(
+                      label: 'Perdus de vue',
+                      value: provider.perdusDeVue.toString(),
+                      icon: Icons.warning_amber_rounded,
+                      color: AppTheme.danger,
+                      bgColor: AppTheme.dangerSoft,
+                      fullWidth: true,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Voir la liste',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.danger,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_forward_ios,
+                              size: 11, color: AppTheme.danger),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Upcoming RDV ─────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('RENDEZ-VOUS À VENIR', style: AppTheme.sectionLabel),
+                  Text(
+                    '${provider.rdvDuJour.length} prévus',
+                    style: AppTheme.labelSm,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          if (provider.rdvDuJour.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: _EmptyState(
+                  icon: Icons.event_available_outlined,
+                  message: 'Aucun rendez-vous prévu prochainement',
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (ctx, i) {
+                    final rdv = provider.rdvDuJour[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _RdvCard(
+                        rdv: rdv,
+                        onDone: () => Provider.of<PatientProvider>(ctx,
+                                listen: false)
+                            .markRdvAsDone(rdv.id),
+                      ),
+                    );
+                  },
+                  childCount: provider.rdvDuJour.length,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError(PatientProvider provider) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.dangerSoft,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.wifi_off_rounded,
+                  color: AppTheme.danger, size: 30),
+            ),
+            const SizedBox(height: 16),
+            Text('Erreur de chargement', style: AppTheme.displayTitle),
+            const SizedBox(height: 8),
             Text(
-              title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+              provider.errorMessage!,
+              textAlign: TextAlign.center,
+              style: AppTheme.bodyMd,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => provider.fetchDashboardData(),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Réessayer'),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton() {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 180,
+          pinned: true,
+          backgroundColor: AppTheme.primary,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(color: AppTheme.primary),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: List.generate(
+                4,
+                (_) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ShimmerBox(height: 80, radius: 16),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Stat Card ──────────────────────────────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+  final bool fullWidth;
+  final Widget? trailing;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+    this.fullWidth = false,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.cormorantGaramond(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(label,
+                    style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: color.withValues(alpha: 0.75),
+                        fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+// ── RDV Card ───────────────────────────────────────────────────────────────────
+class _RdvCard extends StatelessWidget {
+  final dynamic rdv;
+  final VoidCallback onDone;
+
+  const _RdvCard({required this.rdv, required this.onDone});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPlanifie = rdv.statut == 'PLANIFIE';
+    final bool isManque = rdv.statut == 'MANQUE';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            // Status indicator
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isManque
+                    ? AppTheme.dangerSoft
+                    : isPlanifie
+                        ? AppTheme.warningSoft
+                        : AppTheme.successSoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isManque
+                    ? Icons.warning_amber_rounded
+                    : isPlanifie
+                        ? Icons.schedule_rounded
+                        : Icons.check_circle_outline,
+                color: isManque
+                    ? AppTheme.danger
+                    : isPlanifie
+                        ? AppTheme.warning
+                        : AppTheme.success,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${rdv.patientPrenom} ${rdv.patientNom}',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${rdv.typeRdv}  ·  ${DateFormat('dd/MM HH:mm').format(rdv.dateHeure)}',
+                    style: AppTheme.labelSm,
+                  ),
+                  if (rdv.nomVaccin != null && rdv.nomVaccin!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        rdv.nomVaccin!,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // Action
+            if (isPlanifie || isManque)
+              GestureDetector(
+                onTap: onDone,
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppTheme.successSoft,
+                    borderRadius: BorderRadius.circular(11),
+                    border:
+                        Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
+                  ),
+                  child: const Icon(Icons.check_rounded,
+                      color: AppTheme.success, size: 20),
+                ),
+              )
+            else
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppTheme.successSoft,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Fait',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.success,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empty State ────────────────────────────────────────────────────────────────
+class _EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const _EmptyState({required this.icon, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 36, color: AppTheme.textTert),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTheme.bodyMd,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shimmer Box ────────────────────────────────────────────────────────────────
+class _ShimmerBox extends StatelessWidget {
+  final double height;
+  final double radius;
+
+  const _ShimmerBox({required this.height, required this.radius});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVar,
+        borderRadius: BorderRadius.circular(radius),
+      ),
     );
   }
 }
