@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const Icon(Icons.local_hospital, size: 60, color: Color(0xFF1E88E5)),
                       const SizedBox(height: 16),
                       const Text(
-                        "SANTE+ ",
+                        " Marteny ",
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const Text("Espace Agent de Santé", style: TextStyle(color: Colors.grey)),

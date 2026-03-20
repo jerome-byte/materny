@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PatientProvider()), // Ajoutez cette ligne
       ],
       child: MaterialApp(
-        title: 'SANTE+ ',
+        title: 'Materny ',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,

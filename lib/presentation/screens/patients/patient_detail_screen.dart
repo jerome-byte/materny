@@ -87,7 +87,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   // Affichage Garant
                   if (widget.patient.contactUrgenceNom != null && widget.patient.contactUrgenceNom!.isNotEmpty) ...[
                     const Divider(),
-                    const Text("Personne de confiance (Garant)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                    const Text("Personne de confiance (Garant)", style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromARGB(255, 207, 37, 37))),
                     const SizedBox(height: 5),
                     Row(
                       children: [
@@ -133,7 +133,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.check, color: Colors.white),
                           label: const Text("Terminer"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green,foregroundColor: Colors.white),
                           onPressed: () async {
                             // Change le statut et retourne à la liste
                             await Provider.of<PatientProvider>(context, listen: false)
@@ -147,7 +147,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.block, color: Colors.white),
                           label: const Text("Abandon"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange,foregroundColor: Colors.white),
                           onPressed: () async {
                             // Change le statut et retourne à la liste
                             await Provider.of<PatientProvider>(context, listen: false)
@@ -166,6 +166,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       label: const Text("Planifier un RDV"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1E88E5),
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () {
                         Navigator.pushNamed(context, '/add-rdv', arguments: widget.patient);
@@ -213,7 +214,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             subtitle: Text(
                               "${DateFormat('dd/MM/yyyy HH:mm').format(rdv.dateHeure)}\n"
                               "Statut: ${rdv.statut}",
-                              style: const TextStyle(color: Colors.grey),
+                              style: const TextStyle(color: Color.fromARGB(255, 113, 112, 112)),
                             ),
                             isThreeLine: true,
                             trailing: IconButton(

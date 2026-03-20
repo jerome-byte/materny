@@ -107,7 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(height: 4),
                           Text(
                             auth.hospitalName ?? "Centre de Santé",
-                            style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 95, 94, 94)),
+                            style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 58, 57, 57)),
                           ),
                         ],
                       );

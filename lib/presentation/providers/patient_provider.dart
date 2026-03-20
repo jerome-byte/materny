@@ -190,7 +190,9 @@ class PatientProvider with ChangeNotifier {
           }
         }
       }
-
+// 4. Perdus de vue (Le compteur rouge)
+      // On utilise directement le résultat de la requête 4
+      // Cette requête compte les RDV "PLANIFIE" dont la date est passée
       
 
     } catch (e) {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb; // Cette ligne est INDISPENSABLE
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/pdf.dart';
@@ -8,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import '../providers/patient_provider.dart';
 import '../../data/models/patient_model.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart'; // Ajout pour le Web
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -136,13 +138,20 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
       );
 
-      // Sauvegarde
-      final output = await getApplicationDocumentsDirectory();
-      final file = File("${output.path}/Rapport_Complet_$title.pdf");
-      await file.writeAsBytes(await pdf.save());
-      
-      // Ouverture
-      await OpenFilex.open(file.path);
+            // Génération des bytes du PDF
+      final bytes = await pdf.save();
+
+      // Gestion différenciée Web / Mobile
+      if (kIsWeb) {
+        // WEB : Téléchargement via le navigateur
+        await Printing.sharePdf(bytes: bytes, filename: 'Rapport_Complet_$title.pdf');
+      } else {
+        // MOBILE (APK) : Sauvegarde fichier + Ouverture
+        final output = await getApplicationDocumentsDirectory();
+        final file = File("${output.path}/Rapport_Complet_$title.pdf");
+        await file.writeAsBytes(bytes);
+        await OpenFilex.open(file.path);
+      }
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
