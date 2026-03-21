@@ -112,7 +112,7 @@ class PatientProvider with ChangeNotifier {
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day).toIso8601String();
       final endDate = DateTime(today.year, today.month, today.day + 30, 23, 59, 59).toIso8601String();
-      final nowIso = DateTime.now().toIso8601String();
+      
 
       // --- LANCEMENT PARALLÈLE DES 4 REQUÊTES 
       final results = await Future.wait([
