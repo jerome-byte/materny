@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/theme/app_theme.dart';
 
 class PatientLoginScreen extends StatefulWidget {
   const PatientLoginScreen({super.key});
@@ -8,59 +10,99 @@ class PatientLoginScreen extends StatefulWidget {
   State<PatientLoginScreen> createState() => _PatientLoginScreenState();
 }
 
-class _PatientLoginScreenState extends State<PatientLoginScreen> {
-  final _phoneController = TextEditingController();
-  final _otpController = TextEditingController();
+class _PatientLoginScreenState extends State<PatientLoginScreen>
+    with SingleTickerProviderStateMixin {
+    final _phoneController = TextEditingController();
+  final _codeController = TextEditingController(); // Changement : Code au lieu de OTP
   bool _isLoading = false;
-  bool _otpSent = false;
+    bool _isCodeVisible = false; // Variable pour l'œil
 
-  Future<void> _sendOtp() async {
-    setState(() => _isLoading = true);
-    try {
-      // Supabase envoie un SMS (nécessite configuration Twilio/sms provider dans Supabase)
-      await Supabase.instance.client.auth.signInWithOtp(
-        phone: _phoneController.text.trim(),
-      );
-      setState(() => _otpSent = true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Code OTP envoyé !")));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
-    }
-    setState(() => _isLoading = false);
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _animController.forward();
   }
 
-    Future<void> _verifyOtp() async {
+  @override
+  void dispose() {
+    _animController.dispose();
+    _phoneController.dispose();
+    _codeController.dispose();
+    super.dispose();
+  }
+
+    Future<void> _login() async {
+    final phone = _phoneController.text.trim();
+    final code = _codeController.text.trim();
+
+    if (phone.length < 8 || code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Veuillez remplir tous les champs.")),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      final response = await Supabase.instance.client.auth.verifyOTP(
-        phone: _phoneController.text.trim(),
-        token: _otpController.text.trim(),
-        type: OtpType.sms,
-      );
+      // 1. Vérifier si le couple Numéro + Code existe dans la table patients
+      final patientResponse = await Supabase.instance.client
+          .from('patients')
+          .select('id, user_id')
+          .eq('telephone', phone)
+          .eq('access_code', code)
+          .maybeSingle();
 
-      if (response.user != null) {
-        // --- NOUVEAU : LIAISON AUTOMATIQUE ---
-        // On cherche si ce numéro existe dans la table 'patients' créé par la sage-femme
-        final patientData = await Supabase.instance.client
-            .from('patients')
-            .select('id')
-            .eq('telephone', _phoneController.text.trim())
-            .maybeSingle(); // maybeSingle pour éviter erreur si non trouvé
+      if (patientResponse == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Numéro ou Code incorrect.")),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-        if (patientData != null) {
-          // Si trouvé, on met à jour le user_id dans le dossier patient
+      final patientId = patientResponse['id'];
+      final existingUserId = patientResponse['user_id'];
+      
+      // 2. Gestion de la connexion (Création de session)
+      // Astuce : On utilise le numéro comme email unique pour Supabase Auth
+      final fakeEmail = "$phone@materny.patient";
+      
+      if (existingUserId == null) {
+        // PREMIÈRE CONNEXION : Création du compte utilisateur
+        final authResponse = await Supabase.instance.client.auth.signUp(
+          email: fakeEmail,
+          password: code, // Le mot de passe est le code d'accès
+        );
+        
+        if (authResponse.user != null) {
+          // Lier le user_id au dossier patient
           await Supabase.instance.client
               .from('patients')
-              .update({'user_id': response.user!.id})
-              .eq('id', patientData['id']);
+              .update({'user_id': authResponse.user!.id})
+              .eq('id', patientId);
         }
-        // -------------------------------------
-
-        Navigator.pushReplacementNamed(context, '/patient-dashboard');
+      } else {
+        // CONNEXIONS SUIVANTES : Connexion simple
+        await Supabase.instance.client.auth.signInWithPassword(
+          email: fakeEmail,
+          password: code,
+        );
       }
+
+      // 3. Redirection
+      Navigator.pushReplacementNamed(context, '/patient-dashboard');
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur: Code invalide ou expiré.")),
+        SnackBar(content: Text("Erreur de connexion: $e")),
       );
     }
     setState(() => _isLoading = false);
@@ -69,42 +111,160 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Espace Patiente")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.pregnant_woman, size: 80, color: Color(0xFF1E88E5)),
-            const SizedBox(height: 20),
-            const Text("Entrez votre numéro de téléphone pour voir vos rendez-vous"),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(labelText: "Téléphone (ex: +22890000000)"),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            if (_otpSent)
-              TextField(
-                controller: _otpController,
-                decoration: const InputDecoration(labelText: "Code de vérification (OTP)"),
-                keyboardType: TextInputType.number,
+      backgroundColor: AppTheme.bg,
+      body: Column(
+        children: [
+          // ── Header ──────────────────────────────────────────────
+          Expanded(
+            flex: 4,
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                ),
               ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isLoading ? null : () => _otpSent ? _verifyOtp() : _sendOtp(),
-              child: _isLoading 
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : Text(_otpSent ? "Valider le code" : "Recevoir le code"),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                       Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(
+                              color: AppTheme.accent.withValues(alpha: 0.6),
+                              width: 2,
+                            ),
+                            color: Colors.white.withValues(alpha: 0.07),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "M",
+                              style: GoogleFonts.cormorantGaramond(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Espace Patiente',
+                        style: GoogleFonts.cormorantGaramond(
+                          fontSize: 38, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Retrouvez vos rendez-vous',
+                        style: GoogleFonts.dmSans(fontSize: 13, color: Colors.white.withValues(alpha: 0.55)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
-            TextButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/login-agent'), 
-              child: const Text("Vous êtes Agent de Santé ? Cliquez ici")
-            )
-          ],
-        ),
+          ),
+
+          // ── Form ────────────────────────────────────────────────
+          Expanded(
+            flex: 9,
+            child: FadeTransition(
+              opacity: _fadeAnim,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 30, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Connexion',
+                      style: GoogleFonts.cormorantGaramond(
+                        fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Entrez votre numéro de téléphone',
+                      style: AppTheme.bodyMd,
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Phone Input
+                                        // Phone Input
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
+                        hintText: 'Numéro de téléphone',
+                        prefixIcon: Icon(Icons.phone_outlined, size: 19),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16), // Espace entre les champs
+
+                    // Code Input
+                    // Code Input
+                    TextFormField(
+                      controller: _codeController,
+                      keyboardType: TextInputType.number,
+                      obscureText: !_isCodeVisible, // Utilisation de la variable
+                      style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                      decoration: InputDecoration( // Suppression du 'const'
+                        hintText: 'Code d\'accès (donné par l\'agent)',
+                        prefixIcon: const Icon(Icons.lock_outline, size: 19),
+                        // Ajout de l'œil
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isCodeVisible ? Icons.visibility : Icons.visibility_off,
+                            size: 19,
+                            color: AppTheme.textTert,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isCodeVisible = !_isCodeVisible;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _login, // Appel de la nouvelle fonction
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                                'SE CONNECTER', // Texte fixe
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.0,
+                                ),
+                              ),
+                      ),
+                    ),
+                    
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

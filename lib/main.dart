@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:materny/data/services/supabase_service.dart';
 import 'package:materny/presentation/providers/auth_provider.dart';
-import 'package:materny/presentation/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'presentation/providers/patient_provider.dart';
 import 'presentation/screens/patients/add_patient_screen.dart';
@@ -10,6 +9,7 @@ import 'data/models/patient_model.dart';
 import 'presentation/screens/auth/patient_login_screen.dart';
 import 'presentation/screens/patient_dashboard.dart';
 import 'core/theme/app_theme.dart';
+import 'presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         title: 'Materny',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: const SplashScreen(),
+               home: const SplashScreen(), 
         routes: {
           '/add-patient': (context) => const AddPatientScreen(),
           '/add-rdv': (context) => AddRdvScreen(

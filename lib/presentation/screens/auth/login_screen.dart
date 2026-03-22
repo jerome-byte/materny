@@ -105,23 +105,28 @@ class _LoginScreenState extends State<LoginScreen>
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           // Logo mark
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(13),
-                              border: Border.all(
-                                color: AppTheme.accent.withValues(alpha: 0.6),
-                                width: 1.5,
-                              ),
-                              color: Colors.white.withValues(alpha: 0.07),
+                           Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(
+                              color: AppTheme.accent.withValues(alpha: 0.6),
+                              width: 2,
                             ),
-                            child: Icon(
-                              Icons.favorite_rounded,
-                              color: AppTheme.accent,
-                              size: 22,
+                            color: Colors.white.withValues(alpha: 0.07),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "M",
+                              style: GoogleFonts.cormorantGaramond(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
+                        ),
                           const SizedBox(height: 16),
                           Text(
                             'Materny',

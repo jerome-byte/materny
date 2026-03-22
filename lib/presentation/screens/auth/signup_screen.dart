@@ -19,7 +19,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _addressController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  // NOUVEAU : Contrôleur pour le code de sécurité
+  final _authCodeController = TextEditingController();
   bool _isPasswordVisible = false;
+
+  // NOUVEAU : Le code secret défini
+  static const String _validAuthCode = 'MATERNY~v1@.TG.#./';
 
   @override
   void dispose() {
@@ -28,11 +34,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _addressController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _authCodeController.dispose(); // NOUVEAU
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // NOUVEAU : Vérification du code d'autorisation
+    if (_authCodeController.text.trim() != _validAuthCode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Code d'autorisation incorrect. Inscription refusée."),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return; // On arrête tout si le code est faux
+    }
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final error = await auth.signUpAgent(
@@ -171,7 +189,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: _nameController,
                       style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
                       decoration: const InputDecoration(
-                        hintText: 'Dr. Jean Dupont',
+                        hintText: 'Agent de santé',
                         prefixIcon: Icon(Icons.person_outline, size: 19),
                       ),
                       validator: (v) => v!.isEmpty ? 'Requis' : null,
@@ -238,7 +256,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       validator: (v) => v!.length < 6 ? '6 caractères minimum' : null,
                     ),
-
+                    
+                    // NOUVEAU : Champ Code d'Autorisation
+                    const SizedBox(height: 16),
+                    _FieldLabel(label: 'CODE D\'AUTORISATION'),
+                    const SizedBox(height: 7),
+                    TextFormField(
+                      controller: _authCodeController,
+                      style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
+                        hintText: 'Entrez le code fourni par l\'administrateur',
+                        prefixIcon: Icon(Icons.vpn_key_outlined, size: 19),
+                      ),
+                      validator: (v) => v!.isEmpty ? 'Requis' : null,
+                    ),
                     const SizedBox(height: 4),
 
                     // Error + CTA

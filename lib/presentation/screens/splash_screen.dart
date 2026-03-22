@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:materny/presentation/screens/auth/login_screen.dart';
 import 'main_container.dart';
 import '../../data/services/supabase_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'patient_dashboard.dart';
+import 'landing_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -84,37 +84,59 @@ class _SplashScreenState extends State<SplashScreen>
     _contentController.dispose();
     super.dispose();
   }
-
-  void _checkAuth() async {
+   void _checkAuth() async {
     await Future.delayed(const Duration(milliseconds: 2400));
     if (!mounted) return;
-    final session = SupabaseService.client.auth.currentSession;
+
+    // CORRECTION : Utiliser initialSession pour attendre le chargement réel
+    final session =  SupabaseService.client.auth.currentSession;
+    
     if (session != null) {
       try {
-        final response = await SupabaseService.client
+        // 1. Vérifier si c'est un Agent
+        final agentResponse = await SupabaseService.client
             .from('agents')
             .select('id')
             .eq('id', session.user.id)
             .maybeSingle();
+
         if (mounted) {
-          if (response != null) {
+          if (agentResponse != null) {
+            // C'est un Agent -> Tableau de bord Agent
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (_) => const MainContainer()));
           } else {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => const PatientDashboard()));
+            // 2. Si ce n'est pas un agent, vérifier si c'est une Patiente
+            final patientResponse = await SupabaseService.client
+                .from('patients')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+
+            if (mounted) {
+              if (patientResponse != null) {
+                // C'est une Patiente -> Dashboard Patiente
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => const PatientDashboard()));
+              } else {
+                // Session invalide (ni agent ni patient) -> Landing Page
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => const LandingScreen()));
+              }
+            }
           }
         }
       } catch (e) {
         if (mounted) {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+           Navigator.pushReplacement(
+               context, MaterialPageRoute(builder: (_) => const LandingScreen()));
         }
       }
     } else {
+      // Pas de session -> Landing Page
       if (mounted) {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            context, MaterialPageRoute(builder: (_) => const LandingScreen()));
       }
     }
   }

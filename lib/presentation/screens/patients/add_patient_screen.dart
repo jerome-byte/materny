@@ -131,7 +131,6 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       }
     }
   }
-
   Future<void> _savePatientAndRdv() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -164,7 +163,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
     final provider = Provider.of<PatientProvider>(context, listen: false);
 
-    final patientId = await provider.addPatient(
+    // MODIFICATION ICI : On récupère un Map (ID + Code)
+    final result = await provider.addPatient(
       prenom: _prenomController.text.trim(),
       nom: _nomController.text.trim(),
       telephone: _telephoneController.text.trim(),
@@ -174,7 +174,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       contactUrgenceTel: _garantTelephoneController.text.trim(),
     );
 
-    if (patientId != null) {
+    if (result != null) {
+      final patientId = result['id'] as int;
+      final accessCode = result['access_code'] as String;
+
       await provider.addRendezVous(
         patientId: patientId,
         dateHeure: _selectedDateRdv!,
@@ -183,12 +186,66 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_genre == 'M' ? "Enfant enregistré avec succès !" : "Patiente enregistrée !"),
+        // Affichage du code à l'agent
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle, color: AppTheme.success),
+                const SizedBox(width: 10),
+                const Text("Succès"),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _genre == 'M' 
+                      ? "Enfant enregistré avec succès !" 
+                      : "Patiente enregistrée avec succès !",
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Code d'accès à transmettre à la patiente :",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    accessCode,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                      letterSpacing: 4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+                  onPressed: () {
+                    Navigator.pop(ctx); // Fermer la boîte
+                    Navigator.pop(context); // Retour à la liste
+                  },
+                  child: const Text("TERMINER", style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
           ),
         );
-        Navigator.pop(context);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

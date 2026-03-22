@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/rendez_vous_model.dart';
 import '../../data/services/supabase_service.dart';
 import '../../data/models/patient_model.dart';
+import 'dart:math';
 
 class PatientProvider with ChangeNotifier {
   List<RendezVousModel> _rdvDuJour = [];
@@ -206,7 +207,7 @@ class PatientProvider with ChangeNotifier {
 
 
   // ... suite de patient_provider.dart
-  Future<int?> addPatient({
+  Future<Map<String, dynamic>?> addPatient({
     required String prenom,
     required String nom,
     required String telephone,
@@ -217,6 +218,11 @@ class PatientProvider with ChangeNotifier {
   }) async {
     try {
       final userId = SupabaseService.client.auth.currentUser?.id;
+
+      // --- NOUVEAU : Génération du code d'accès unique à 6 chiffres ---
+      final random = Random();
+      final accessCode = (random.nextInt(900000) + 100000).toString(); // Ex: 852014
+      // ----------------------------------------------------------------
 
       final response = await SupabaseService.client
           .from('patients')
@@ -229,8 +235,9 @@ class PatientProvider with ChangeNotifier {
             'contact_urgence_nom': contactUrgenceNom,
             'contact_urgence_telephone': contactUrgenceTel,
             'created_by': userId,
+            'access_code': accessCode, // On sauvegarde le code ici
           })
-          .select('id')
+          .select('id, access_code') // On récupère l'ID et le Code
           .single();
 
       fetchDashboardData();
@@ -245,9 +252,12 @@ class PatientProvider with ChangeNotifier {
         debugPrint("Erreur envoi invitation: $e");
       }
 
-      return response['id'] as int;
+      // On retourne un Map contenant l'ID et le Code
+      return {
+        'id': response['id'] as int, 
+        'access_code': response['access_code']
+      };
     } catch (e) {
-      // AFFICHAGE CLAIR DE L'ERREUR DANS LA CONSOLE
       debugPrint("!!!!!!!! ERREUR SUPABASE Ajout Patient: $e");
       return null;
     }
