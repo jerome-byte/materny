@@ -7,6 +7,9 @@ import '../providers/patient_provider.dart';
 import '../../../data/models/rendez_vous_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../data/services/supabase_service.dart';
+import 'patient_history_screen.dart';
+import 'patient_missed_screen.dart';
+import 'patient_profile_screen.dart';
 
 class PatientDashboard extends StatefulWidget {
   const PatientDashboard({super.key});
@@ -132,40 +135,248 @@ class _PatientDashboardState extends State<PatientDashboard> {
               ),
             ),
           ),
+          
+                        // --- NOUVEAU : Section Statistiques ---
+              if (!_isLoading)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('VUE D\'ENSEMBLE', style: AppTheme.sectionLabel),
+                        const SizedBox(height: 12),
+                        
+                        // Rangée 1
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Consumer<PatientProvider>(
+                                builder: (ctx, p, _) => _StatCard(
+                                  label: 'Total RDV',
+                                  value: p.patientTotalRdvs.toString(),
+                                  icon: Icons.calendar_today_outlined,
+                                  color: AppTheme.primary,
+                                  bgColor: const Color(0xFFEAF2EE),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Consumer<PatientProvider>(
+                                builder: (ctx, p, _) => _StatCard(
+                                  label: 'Effectués',
+                                  value: p.patientRdvEffectues.toString(),
+                                  icon: Icons.check_circle_outline_rounded,
+                                  color: AppTheme.success,
+                                  bgColor: AppTheme.successSoft,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
 
-          // ── Content ────────────────────────────────────────
+                        // Rangée 2
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Consumer<PatientProvider>(
+                                builder: (ctx, p, _) => _StatCard(
+                                  label: 'À venir',
+                                  value: p.patientRdvAVenir.toString(),
+                                  icon: Icons.schedule_outlined,
+                                  color: AppTheme.warning,
+                                  bgColor: AppTheme.warningSoft,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Consumer<PatientProvider>(
+                                builder: (ctx, p, _) => _StatCard(
+                                  label: 'Manqués',
+                                  value: p.patientRdvManques.toString(),
+                                  icon: Icons.cancel_outlined,
+                                  color: AppTheme.danger,
+                                  bgColor: AppTheme.dangerSoft,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              // ------------------------------------
+                   // ── Content ────────────────────────────────────────
           if (_isLoading)
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
             )
-          else if (_rdvs.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          else ...[
+            // --- Titre de la section ---
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 16),               
+                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.event_available_outlined, size: 48, color: AppTheme.textTert),
-                    const SizedBox(height: 12),
-                    Text("Aucun rendez-vous programmé", style: AppTheme.bodyMd),
+                    Text('RENDEZ-VOUS À VENIR', style: AppTheme.sectionLabel),
+                    // Affiche le nombre
+                    Text('${_rdvs.where((r) => r.statut == 'PLANIFIE' && r.dateHeure.isAfter(DateTime.now())).length} prévus', style: AppTheme.labelSm),
                   ],
                 ),
               ),
-            )
-          else
+            ),
+
+            // --- Liste des RDV (Filtrée) ---
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) {
-                    final rdv = _rdvs[i];
-                    return _RdvPatientCard(rdv: rdv);
-                  },
-                  childCount: _rdvs.length,
-                ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              sliver: Builder(
+                builder: (context) {
+                  // Filtrer les RDV à venir
+                  final upcomingRdvs = _rdvs.where((r) => 
+                    r.statut == 'PLANIFIE' && r.dateHeure.isAfter(DateTime.now())
+                  ).toList();
+
+                  if (upcomingRdvs.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.border),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.event_available_outlined, size: 40, color: AppTheme.textTert),
+                            const SizedBox(height: 10),
+                            Text("Aucun rendez-vous à venir", style: AppTheme.bodyMd),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, i) {
+                        final rdv = upcomingRdvs[i];
+                        return _RdvPatientCard(rdv: rdv);
+                      },
+                      childCount: upcomingRdvs.length,
+                    ),
+                  );
+                },
               ),
             ),
+          ],
         ],
       ),
+              // NOUVEAU : Bouton Historique en bas
+           // Barre de navigation basse (Story + Missed)
+        persistentFooterButtons: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+
+               // --- 2. Accueil (Dashboard) ---
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    // Rafraîchir les données si on clique sur Accueil
+                    _loadData();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.home_rounded, color: AppTheme.primary, size: 24),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Accueil",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // --- Bouton Story ---
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PatientHistoryScreen()),
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.history_rounded, color: AppTheme.primary, size: 24),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Story",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // --- Bouton Missed ---
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PatientMissedScreen()),
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: AppTheme.danger, size: 24),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Missed",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.danger,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+               // --- 4. Profil ---
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PatientProfileScreen())),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.person_rounded, color: AppTheme.textSec, size: 24),
+                      const SizedBox(height: 2),
+                      Text("Profil", style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textSec)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
     );
   }
 }
@@ -264,6 +475,73 @@ class _RdvPatientCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 color: rdv.statut == 'EFFECTUE' ? AppTheme.success : AppTheme.textSec,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+// ── Widget Stat Card Patient ────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.cormorantGaramond(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 11,
+                    color: color.withValues(alpha: 0.75),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

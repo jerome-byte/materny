@@ -11,6 +11,8 @@ class PatientProvider with ChangeNotifier {
   // Ajoutez ces variables en haut de la classe PatientProvider
   List<PatientModel> _patients = [];
   List<PatientModel> get patients => _patients;
+  List<RendezVousModel> _patientRdvs = [];
+  List<RendezVousModel> get patientRdvs => _patientRdvs;
 
   String? _errorMessage; // Ajoutez ceci
   String? get errorMessage => _errorMessage; // Ajoutez ceci
@@ -22,6 +24,18 @@ class PatientProvider with ChangeNotifier {
   int get rdvEffectues => _rdvEffectues;
   int get rdvPlanifies => _rdvPlanifies;
   int get rdvManques => _rdvManques;
+
+    // --- Stats Patient ---
+  int _patientTotalRdvs = 0;
+  int _patientRdvEffectues = 0;
+  int _patientRdvAVenir = 0;
+  int _patientRdvManques = 0;
+
+  int get patientTotalRdvs => _patientTotalRdvs;
+  int get patientRdvEffectues => _patientRdvEffectues;
+  int get patientRdvAVenir => _patientRdvAVenir;
+  int get patientRdvManques => _patientRdvManques;
+  // ---------------------
 
   // Ajoutez cette nouvelle fonction
     Future<void> fetchPatients() async {
@@ -375,6 +389,7 @@ class PatientProvider with ChangeNotifier {
   }
 
   // Récupérer les RDV du patient connecté (via son user_id)
+   // Récupérer les RDV du patient connecté (via son user_id) + Calcul Stats
   Future<List<RendezVousModel>> fetchMyRdvs() async {
     try {
       final userId = SupabaseService.client.auth.currentUser?.id;
@@ -385,7 +400,9 @@ class PatientProvider with ChangeNotifier {
           .from('patients')
           .select('id')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
+
+      if (patientData == null) return [];
 
       final patientId = patientData['id'];
 
@@ -394,11 +411,40 @@ class PatientProvider with ChangeNotifier {
           .from('rendez_vous')
           .select('id, date_heure, type_rdv, statut, nom_vaccin')
           .eq('patient_id', patientId)
+           .eq('hidden_for_patient', false) // NOUVEAU : Ne pas charger ceux masqués
           .order('date_heure', ascending: true);
 
-      return response
+      final rdvs = response
           .map<RendezVousModel>((json) => RendezVousModel.fromJson(json))
           .toList();
+
+      // --- NOUVEAU : Calcul des statistiques pour la patiente ---
+      _patientTotalRdvs = rdvs.length;
+      _patientRdvEffectues = 0;
+      _patientRdvAVenir = 0;
+      _patientRdvManques = 0;
+
+      final now = DateTime.now();
+
+      for (var rdv in rdvs) {
+        if (rdv.statut == 'EFFECTUE') {
+          _patientRdvEffectues++;
+        } else if (rdv.statut == 'PLANIFIE') {
+          if (rdv.dateHeure.isAfter(now)) {
+            _patientRdvAVenir++;
+          } else {
+            // Planifié mais date passée = Manqué
+            _patientRdvManques++;
+          }
+        } else if (rdv.statut == 'MANQUE') {
+          _patientRdvManques++;
+        }
+      }
+      // ----------------------------------------------------------
+
+      _patientRdvs = rdvs; // On sauvegarde la liste
+      notifyListeners();
+      return rdvs;
     } catch (e) {
       debugPrint("Erreur fetch my rdvs: $e");
       return [];
@@ -415,6 +461,27 @@ class PatientProvider with ChangeNotifier {
     _rdvEffectues = 0;
     _rdvPlanifies = 0;
     _rdvManques = 0;
+
+    // Ajout reset stats patient
+    _patientTotalRdvs = 0;
+    _patientRdvEffectues = 0;
+    _patientRdvAVenir = 0;
+    _patientRdvManques = 0;
     notifyListeners();
+  }
+
+    // Masquer un RDV pour la patiente (sans le supprimer pour l'agent)
+  Future<void> hideRdvForPatient(int rdvId) async {
+    try {
+      await SupabaseService.client
+          .from('rendez_vous')
+          .update({'hidden_for_patient': true})
+          .eq('id', rdvId);
+      
+      // Recharger les données pour mettre à jour l'UI
+      await fetchMyRdvs();
+    } catch (e) {
+      debugPrint("Erreur masquage RDV: $e");
+    }
   }
 }
