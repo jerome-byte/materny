@@ -58,6 +58,18 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     },
   };
 
+    // --- NOUVEAU : Données des CPN ---
+  final Map<String, String> _cpnList = {
+    'CPN 1': 'Conséquences de l\'absence : Risque de ne pas détecter une grossesse extra-utérine ou des malformations précoces. Les carences (fer, acide folique) ne sont pas traitées, ce qui augmente le risque d\'anémie sévère et d\'anomalies du tube neural chez le fœtus.',
+    'CPN 2': 'Conséquences de l\'absence : Risque de passer à côté d\'une hypertension artérielle gravidique (prééclampsie) non diagnostiquée. Le fœtus peut souffrir d\'un retard de croissance intra-utérin qui ne sera pas détecté à temps.',
+    'CPN 3': 'Conséquences de l\'absence : Une infection urinaire ou un diabète gestationnel peut s\'aggraver sans symptômes visibles. L\'absence de prévention contre le paludisme expose la mère à une anémie grave et le bébé à un faible poids de naissance ou à une naissance prématurée.',
+    'CPN 4': 'Conséquences de l\'absence : Si le bébé est en siège ou s\'il y a un problème de placenta (placenta prævia), l\'absence de diagnostic peut entraîner des complications mortelles lors d\'un accouchement à domicile ou non préparé.',
+    'CPN 5': 'Conséquences de l\'absence : Risque élevé de dépassement de terme ou de complications de dernière minute (rupture prématurée des membranes, hémorragies) sans assistance médicale immédiate.',
+  };
+
+  String? _selectedCpnComment; // Variable pour stocker le commentaire à afficher
+  
+
   bool _isLoading = false;
 
   @override
@@ -71,7 +83,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       _typeRdvController.text = "Vaccination";
       _vaccineController.text = "BCG";
     } else {
-      _typeRdvController.text = "Consultation Prénatale (CPN)";
+      // MODE MÈRE
+      _typeRdvController.text = "CPN 1"; // Défaut CPN 1
+      _selectedCpnComment = _cpnList["CPN 1"]; // On charge le commentaire du CPN 1
     }
   }
 
@@ -372,18 +386,28 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               _FormCard(
                 children: [
                   // Type RDV
+                                    // Type RDV (Modification CPN)
                   Autocomplete<String>(
                     initialValue: TextEditingValue(text: _typeRdvController.text),
                     optionsBuilder: (TextEditingValue textEditingValue) {
-                      List<String> options = isChildMode
-                          ? ['Vaccination', 'Autre']
-                          : ['Consultation Prénatale (CPN)', 'Autre'];
+                      // Si c'est une mère, on propose les CPN
+                      List<String> options = isChildMode 
+                          ? ['Vaccination', 'Autre'] 
+                          : [..._cpnList.keys, 'Autre']; // CPN 1, CPN 2... + Autre
 
                       if (textEditingValue.text.isEmpty) return options;
                       return options.where((opt) => opt.toLowerCase().contains(textEditingValue.text.toLowerCase()));
                     },
                     onSelected: (String selection) {
-                      setState(() => _typeRdvController.text = selection);
+                      setState(() {
+                        _typeRdvController.text = selection;
+                        // Si c'est un CPN connu, on charge son commentaire
+                        if (_cpnList.containsKey(selection)) {
+                          _selectedCpnComment = _cpnList[selection];
+                        } else {
+                          _selectedCpnComment = null;
+                        }
+                      });
                     },
                     fieldViewBuilder: (ctx, controller, focusNode, onSubmitted) {
                       return TextFormField(
@@ -396,6 +420,32 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                       );
                     },
                   ),
+
+                  // --- NOUVEAU : Affichage du commentaire CPN ---
+                  if (_selectedCpnComment != null && !isChildMode) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.warningSoft,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: AppTheme.warning, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _selectedCpnComment!,
+                              style: GoogleFonts.dmSans(fontSize: 12, color: AppTheme.textSec),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // -----------------------------------------------
 
                   // Vaccine (Only if child)
                   if (isChildMode && _typeRdvController.text.toLowerCase().contains('vaccination')) ...[
