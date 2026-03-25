@@ -12,10 +12,13 @@ class PatientProfileScreen extends StatefulWidget {
 
 class _PatientProfileScreenState extends State<PatientProfileScreen> {
   bool _isLoading = true;
+  // Infos Mère
   String _prenom = "";
   String _nom = "";
   String _telephone = "";
-  String _genre = "";
+   String _genre = "";
+  // Liste des enfants
+  List<Map<String, dynamic>> _children = [];
 
   @override
   void initState() {
@@ -28,18 +31,29 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       final userId = SupabaseService.client.auth.currentUser?.id;
       if (userId == null) return;
 
+      // On récupère TOUS les profils liés à ce compte (Mère + Enfants)
       final response = await SupabaseService.client
           .from('patients')
-          .select('prenom, nom, telephone, genre')
-          .eq('user_id', userId)
-          .single();
+          .select('id, prenom, nom, telephone, genre')
+          .eq('user_id', userId);
 
       if (mounted) {
+        // On sépare la mère des enfants
+        final motherData = response.firstWhere(
+          (p) => p['genre'] == 'F', 
+          orElse: () => <String, dynamic>{}
+        );
+
+        final childrenData = response.where((p) => p['genre'] == 'M').toList();
+
         setState(() {
-          _prenom = response['prenom'] ?? 'Inconnu';
-          _nom = response['nom'] ?? 'Inconnu';
-          _telephone = response['telephone'] ?? 'Non renseigné';
-          _genre = response['genre'] == 'F' ? 'Femme Enceinte' : 'Enfant';
+          if (motherData.isNotEmpty) {
+            _prenom = motherData['prenom'] ?? 'Inconnu';
+            _nom = motherData['nom'] ?? 'Inconnu';
+            _telephone = motherData['telephone'] ?? 'Non renseigné';
+            _genre = 'Femme Enceinte'; // On définit le genre
+          }
+          _children = childrenData;
           _isLoading = false;
         });
       }
@@ -142,8 +156,29 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         ),
                       ],
                     ),
+                                             
                   ),
-
+                   // --- NOUVEAU : Section Enfant
+                if (_children.isNotEmpty) ...[
+                    const SizedBox(height: 30),
+                    _SectionLabel(label: "MES ENFANTS"),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.border),
+                      ),
+                      child: Column(
+                        children: _children.map((child) {
+                          return _ChildTile(
+                            prenom: child['prenom'] ?? 'Inconnu',
+                            nom: child['nom'] ?? '',
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 30),
 
                   // Bouton Déconnexion
@@ -196,6 +231,57 @@ class _InfoTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(value, style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  const _SectionLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: GoogleFonts.dmSans(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppTheme.textSec,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+}
+
+class _ChildTile extends StatelessWidget {
+  final String prenom;
+  final String nom;
+
+  const _ChildTile({required this.prenom, required this.nom});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.child_care_rounded, color: Colors.blue.shade700, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              "$prenom $nom",
+              style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
             ),
           ),
         ],

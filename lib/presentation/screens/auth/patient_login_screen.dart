@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_theme.dart';
+import '../landing_screen.dart';
 
 class PatientLoginScreen extends StatefulWidget {
   const PatientLoginScreen({super.key});
@@ -53,23 +54,24 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
     setState(() => _isLoading = true);
     try {
       // 1. Vérifier si le couple Numéro + Code existe dans la table patients
-      final patientResponse = await Supabase.instance.client
+      final responseList = await Supabase.instance.client
           .from('patients')
           .select('id, user_id')
           .eq('telephone', phone)
-          .eq('access_code', code)
-          .maybeSingle();
-
-      if (patientResponse == null) {
+          .eq('access_code', code);
+          
+       if (responseList.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Numéro ou Code incorrect.")),
         );
         setState(() => _isLoading = false);
         return;
       }
+       // On prend le premier résultat (généralement la mère ou le propriétaire du compte)
+      final patientData = responseList.first;
 
-      final patientId = patientResponse['id'];
-      final existingUserId = patientResponse['user_id'];
+            final patientId = patientData['id'];
+      final existingUserId = patientData['user_id'];
       
       // 2. Gestion de la connexion (Création de session)
       // Astuce : On utilise le numéro comme email unique pour Supabase Auth
@@ -258,7 +260,26 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                               ),
                       ),
                     ),
-                    
+                      const SizedBox(height: 15),
+
+                        // --- NOUVEAU : Bouton Retour ---
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LandingScreen()),
+                              );
+                            },
+                            child: Text(
+                              "Retour",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 13,
+                                color: const Color.fromARGB(255, 11, 46, 25),
+                              ),
+                            ),
+                          ),
+                        ),
                   ],
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:materny/presentation/providers/auth_provider.dart';
 import '../main_container.dart';
 import 'signup_screen.dart';
 import '../../../core/theme/app_theme.dart';
+import '../landing_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -320,6 +321,26 @@ class _LoginScreenState extends State<LoginScreen>
                               ],
                             );
                           },
+                        ),
+                         const SizedBox(height: 15),
+
+                        // --- NOUVEAU : Bouton Retour ---
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LandingScreen()),
+                              );
+                            },
+                            child: Text(
+                              "Retour",
+                              style: GoogleFonts.dmSans(
+                                fontSize: 13,
+                                color: const Color.fromARGB(255, 10, 65, 32),
+                              ),
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 28),

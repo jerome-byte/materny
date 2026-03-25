@@ -71,6 +71,10 @@ class _MissedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // On récupère le nom (Mère ou Enfant)
+    final patientName = "${rdv.patientPrenom} ${rdv.patientNom}".trim();
+    final displayTitle = patientName.isNotEmpty ? patientName : "Patient";
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -102,6 +106,17 @@ class _MissedCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // --- NOUVEAU : On affiche le nom du patient (Mère ou Enfant) ---
+                Text(
+                  displayTitle,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.danger,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // -----------------------------------------------------------------
                 Text(
                   rdv.typeRdv,
                   style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),

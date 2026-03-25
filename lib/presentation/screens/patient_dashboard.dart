@@ -44,7 +44,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
       debugPrint("Erreur token: $e");
     }
   }
-
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     final data = await Provider.of<PatientProvider>(context, listen: false).fetchMyRdvs();
@@ -52,13 +51,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
     try {
       final user = SupabaseService.client.auth.currentUser;
       if (user != null) {
+        // MODIFICATION : On filtre par user_id ET genre='F' pour être sûr de prendre la mère
         final patientInfo = await SupabaseService.client
             .from('patients')
             .select('prenom')
             .eq('user_id', user.id)
-            .single();
+            .eq('genre', 'F') // Cible uniquement la mère
+            .maybeSingle(); // Utilise maybeSingle pour éviter l'erreur "multiple rows"
+            
         if (mounted) {
-          setState(() => _patientName = patientInfo['prenom'] ?? "Patiente");
+          setState(() => _patientName = patientInfo?['prenom'] ?? "Patiente");
         }
       }
     } catch (e) {

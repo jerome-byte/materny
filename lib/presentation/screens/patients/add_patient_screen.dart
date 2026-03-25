@@ -350,6 +350,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   _StyledTextFormField(
                     controller: _telephoneController,
                     label: 'Téléphone *',
+                    
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_outlined,
                   ),
@@ -372,6 +373,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   _StyledTextFormField(
                     controller: _garantTelephoneController,
                     label: 'Téléphone garant',
+                    
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_in_talk_outlined,
                   ),

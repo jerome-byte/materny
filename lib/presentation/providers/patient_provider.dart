@@ -232,11 +232,27 @@ class PatientProvider with ChangeNotifier {
   }) async {
     try {
       final userId = SupabaseService.client.auth.currentUser?.id;
+      
+      // --- NOUVEAU : Logique pour l'enfant ---
+      String accessCode;
+      String? inheritedUserId; // Pour hériter du compte de la mère
 
-      // --- NOUVEAU : Génération du code d'accès unique à 6 chiffres ---
-      final random = Random();
-      final accessCode = (random.nextInt(900000) + 100000).toString(); // Ex: 852014
-      // ----------------------------------------------------------------
+      if (motherId != null) {
+        // C'est un enfant : on va chercher le code de la mère
+        final motherData = await SupabaseService.client
+            .from('patients')
+            .select('access_code, user_id')
+            .eq('id', motherId)
+            .single();
+            
+        accessCode = motherData['access_code']; // Même code que la mère
+        inheritedUserId = motherData['user_id']; // Même compte que la mère (si elle s'est déjà connectée)
+      } else {
+        // C'est une mère : on génère un nouveau code
+        final random = Random();
+        accessCode = (random.nextInt(900000) + 100000).toString();
+      }
+      
 
       final response = await SupabaseService.client
           .from('patients')
@@ -249,26 +265,29 @@ class PatientProvider with ChangeNotifier {
             'contact_urgence_nom': contactUrgenceNom,
             'contact_urgence_telephone': contactUrgenceTel,
             'created_by': userId,
-            'access_code': accessCode, // On sauvegarde le code ici
+            'access_code': accessCode, // Code de la mère ou nouveau code
+            'user_id': inheritedUserId, // Héritage du compte mère
           })
-          .select('id, access_code') // On récupère l'ID et le Code
+          .select('id, access_code')
           .single();
 
       fetchDashboardData();
-
-      // Envoi SMS (non bloquant)
-      try {
-        await SupabaseService.client.functions.invoke(
-          'send-invite',
-          body: {'telephone': telephone, 'prenom': prenom},
-        );
-      } catch (e) {
-        debugPrint("Erreur envoi invitation: $e");
+      await fetchPatients(); // NOUVEAU : Rafraîchir la liste des patients
+      
+      // Envoi SMS (uniquement pour la mère)
+      if (motherId == null) {
+        try {
+          await SupabaseService.client.functions.invoke(
+            'send-invite',
+            body: {'telephone': telephone, 'prenom': prenom},
+          );
+        } catch (e) {
+          debugPrint("Erreur envoi invitation: $e");
+        }
       }
 
-      // On retourne un Map contenant l'ID et le Code
       return {
-        'id': response['id'] as int, 
+        'id': response['id'], 
         'access_code': response['access_code']
       };
     } catch (e) {
@@ -390,35 +409,55 @@ class PatientProvider with ChangeNotifier {
 
   // Récupérer les RDV du patient connecté (via son user_id)
    // Récupérer les RDV du patient connecté (via son user_id) + Calcul Stats
-  Future<List<RendezVousModel>> fetchMyRdvs() async {
+    Future<List<RendezVousModel>> fetchMyRdvs() async {
     try {
       final userId = SupabaseService.client.auth.currentUser?.id;
       if (userId == null) return [];
 
-      // 1. Trouver le patient lié à ce user_id
-      final patientData = await SupabaseService.client
+      // 1. Récupérer TOUS les profils liés à ce compte (Mère + Enfants)
+      // On change .maybeSingle() pour récupérer une LISTE
+      final patientsList = await SupabaseService.client
           .from('patients')
           .select('id')
-          .eq('user_id', userId)
-          .maybeSingle();
+          .eq('user_id', userId);
 
-      if (patientData == null) return [];
+      if (patientsList.isEmpty) return [];
 
-      final patientId = patientData['id'];
+      // On crée la liste des IDs
+      final List<int> patientIds = patientsList.map<int>((p) => p['id'] as int).toList();
 
-      // 2. Récupérer ses RDV
+      // 2. (Sécurité) On vérifie aussi les enfants liés par mother_id (au cas où)
+      // On prend le premier ID comme référence de la mère potentielle
+      final mainPatientId = patientIds.first;
+      
+      final childrenData = await SupabaseService.client
+          .from('patients')
+          .select('id')
+          .eq('mother_id', mainPatientId);
+
+      // On ajoute les IDs des enfants trouvés (s'ils n'étaient pas déjà dans la liste)
+      for (var child in childrenData) {
+        final childId = child['id'] as int;
+        if (!patientIds.contains(childId)) {
+          patientIds.add(childId);
+        }
+      }
+
+      if (patientIds.isEmpty) return [];
+
+      // 3. Récupérer les RDV pour TOUS ces patients
       final response = await SupabaseService.client
           .from('rendez_vous')
-          .select('id, date_heure, type_rdv, statut, nom_vaccin')
-          .eq('patient_id', patientId)
-           .eq('hidden_for_patient', false) // NOUVEAU : Ne pas charger ceux masqués
+          .select('id, date_heure, type_rdv, statut, nom_vaccin, patients(prenom, nom)')          
+          .filter('patient_id', 'in', patientIds) 
+          .eq('hidden_for_patient', false)
           .order('date_heure', ascending: true);
 
       final rdvs = response
           .map<RendezVousModel>((json) => RendezVousModel.fromJson(json))
           .toList();
 
-      // --- NOUVEAU : Calcul des statistiques pour la patiente ---
+      // --- Calcul des statistiques ---
       _patientTotalRdvs = rdvs.length;
       _patientRdvEffectues = 0;
       _patientRdvAVenir = 0;
@@ -433,16 +472,14 @@ class PatientProvider with ChangeNotifier {
           if (rdv.dateHeure.isAfter(now)) {
             _patientRdvAVenir++;
           } else {
-            // Planifié mais date passée = Manqué
             _patientRdvManques++;
           }
         } else if (rdv.statut == 'MANQUE') {
           _patientRdvManques++;
         }
       }
-      // ----------------------------------------------------------
 
-      _patientRdvs = rdvs; // On sauvegarde la liste
+      _patientRdvs = rdvs;
       notifyListeners();
       return rdvs;
     } catch (e) {
@@ -450,7 +487,6 @@ class PatientProvider with ChangeNotifier {
       return [];
     }
   }
-
   // Fonction pour vider les données (à appeler lors de la déconnexion/connexion)
   void reset() {
     _patients = [];
