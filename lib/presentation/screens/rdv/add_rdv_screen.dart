@@ -85,7 +85,7 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
         builder: (context, child) {
           return Theme(
             data: ThemeData.light().copyWith(
-              colorScheme: const ColorScheme.light(primary: AppTheme.primary),
+              colorScheme: const ColorScheme.light(primary: Color.fromARGB(255, 74, 144, 226)),
             ),
             child: child!,
           );
@@ -159,7 +159,7 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
           "RDV pour ${widget.patient.prenom}",
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: Colors.white),
         ),
-        backgroundColor: AppTheme.primary,
+        backgroundColor:Color.fromARGB(255, 74, 144, 226),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -200,7 +200,7 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
+                          color:  const Color(0xFF1A237E),
                         ),
                       ),
                     ),
@@ -220,7 +220,7 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
                     onTap: _pickDate,
                     child: AbsorbPointer(
                       child: TextFormField(
-                        style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                        style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF1A237E)),
                         decoration: _inputDecoration(
                           _selectedDate == null
                               ? 'Date et heure *'
@@ -355,7 +355,7 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
+                   backgroundColor:Color.fromARGB(255, 74, 144, 226),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
@@ -384,10 +384,10 @@ class _AddRdvScreenState extends State<AddRdvScreen> {
   InputDecoration _inputDecoration(String label, {IconData? prefixIcon, Color? fillColor}) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.dmSans(fontSize: 13, color: AppTheme.textTert),
+      labelStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color.fromARGB(255, 131, 133, 132)),
       filled: true,
       fillColor: fillColor ?? AppTheme.surface,
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppTheme.textTert) : null,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: const Color.fromARGB(255, 122, 122, 122)) : null,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

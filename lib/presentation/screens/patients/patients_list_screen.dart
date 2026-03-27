@@ -64,7 +64,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
               // ── App Bar ────────────────────────────────────────────────
               SliverAppBar(
                 pinned: true,
-                backgroundColor: AppTheme.primary,
+                backgroundColor:Color.fromARGB(255, 74, 144, 226),
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 title: Text(
@@ -97,7 +97,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(60),
                   child: Container(
-                    color: AppTheme.primary,
+                    color: Color.fromARGB(255, 74, 144, 226),
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: TextField(
                       controller: _searchController,
@@ -150,7 +150,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
               if (provider.isLoading)
                 SliverFillRemaining(
                   child: Center(
-                    child: CircularProgressIndicator(color: AppTheme.primary),
+                    child: CircularProgressIndicator(color: Color.fromARGB(255, 74, 144, 226)),
                   ),
                 )
 
@@ -216,7 +216,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
           context,
           MaterialPageRoute(builder: (_) => const AddPatientScreen()),
         ),
-        backgroundColor: AppTheme.primary,
+        backgroundColor: Color.fromARGB(255, 74, 144, 226),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: const Icon(Icons.add_rounded, size: 26),
       ),

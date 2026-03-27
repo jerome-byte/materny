@@ -108,7 +108,7 @@ class _BottomNav extends StatelessWidget {
                         Icon(
                           selected ? item.activeIcon : item.icon,
                           size: 22,
-                          color: selected ? AppTheme.primary : AppTheme.textTert,
+                          color: selected ?const Color(0xFF1A237E) : const Color.fromARGB(255, 147, 151, 148),
                         ),
                         const SizedBox(height: 3),
                         Text(
@@ -116,7 +116,7 @@ class _BottomNav extends StatelessWidget {
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
                             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                            color: selected ? AppTheme.primary : AppTheme.textTert,
+                            color: selected ? const Color(0xFF1A237E) : const Color.fromARGB(255, 132, 136, 134),
                           ),
                         ),
                       ],
@@ -155,7 +155,7 @@ class ProfileScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 200,
                 pinned: true,
-                backgroundColor: AppTheme.primary,
+                backgroundColor:Color.fromARGB(255, 74, 144, 226),
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 title: Text(
@@ -173,7 +173,7 @@ class ProfileScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                        colors: [Color.fromARGB(255, 74, 144, 226),Color.fromARGB(255, 34, 107, 190)],
                       ),
                     ),
                     child: SafeArea(
@@ -188,7 +188,7 @@ class ProfileScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppTheme.accent.withValues(alpha: 0.6),
+                                color: const Color.fromARGB(255, 224, 114, 215).withValues(alpha: 0.6),
                                 width: 2,
                               ),
                               color: Colors.white.withValues(alpha: 0.1),

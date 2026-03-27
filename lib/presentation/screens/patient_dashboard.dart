@@ -324,7 +324,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       Icon(Icons.history_rounded, color: AppTheme.primary, size: 24),
                       const SizedBox(height: 2),
                       Text(
-                        "Story",
+                        "historique",
                         style: GoogleFonts.dmSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -351,7 +351,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       Icon(Icons.warning_amber_rounded, color: AppTheme.danger, size: 24),
                       const SizedBox(height: 2),
                       Text(
-                        "Missed",
+                        "Manqués",
                         style: GoogleFonts.dmSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,

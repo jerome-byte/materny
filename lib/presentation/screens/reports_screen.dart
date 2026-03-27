@@ -184,7 +184,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         headerSliverBuilder: (ctx, _) => [
           SliverAppBar(
             pinned: true,
-            backgroundColor: AppTheme.primary,
+           backgroundColor:Color.fromARGB(255, 74, 144, 226),
             elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
@@ -198,7 +198,7 @@ class _ReportsScreenState extends State<ReportsScreen>
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(44),
               child: Container(
-                color: AppTheme.primary,
+                color: Color.fromARGB(255, 74, 144, 226),
                 child: TabBar(
                   controller: _tabController,
                   tabs: const [

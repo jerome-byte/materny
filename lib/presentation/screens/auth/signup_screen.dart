@@ -84,7 +84,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                  colors: [Color.fromARGB(255, 74, 144, 226),
+                    Color.fromARGB(255, 228, 125, 219),],
                 ),
               ),
               child: SafeArea(
@@ -115,14 +116,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(13),
                               border: Border.all(
-                                color: AppTheme.accent.withValues(alpha: 0.6),
+                                color: const Color.fromARGB(255, 90, 115, 184).withValues(alpha: 0.6),
                                 width: 1.5,
                               ),
                               color: Colors.white.withValues(alpha: 0.07),
                             ),
                             child: Icon(
                               Icons.person_add_rounded,
-                              color: AppTheme.accent,
+                              color:  const Color(0xFF9B59B6),
                               size: 22,
                             ),
                           ),
@@ -183,11 +184,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: 28),
 
                     // Fields
-                    _FieldLabel(label: 'NOM COMPLET'),
+                    _FieldLabel(label: 'Nom complet'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _nameController,
-                      style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                      style: GoogleFonts.dmSans(fontSize: 14, color: const Color.fromARGB(255, 1, 2, 1)),
                       decoration: const InputDecoration(
                         hintText: 'Agent de santé',
                         prefixIcon: Icon(Icons.person_outline, size: 19),
@@ -196,7 +197,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    _FieldLabel(label: 'CENTRE DE SANTÉ'),
+                    _FieldLabel(label: 'Centre de santé'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _hospitalController,
@@ -209,7 +210,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    _FieldLabel(label: 'ADRESSE / VILLE'),
+                    _FieldLabel(label: 'Adresse / Ville'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _addressController,
@@ -222,7 +223,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    _FieldLabel(label: 'ADRESSE EMAIL'),
+                    _FieldLabel(label: 'Adresse email'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _emailController,
@@ -236,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    _FieldLabel(label: 'MOT DE PASSE'),
+                    _FieldLabel(label: 'Mot de passe'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _passwordController,
@@ -259,7 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     
                     // NOUVEAU : Champ Code d'Autorisation
                     const SizedBox(height: 16),
-                    _FieldLabel(label: 'CODE D\'AUTORISATION'),
+                    _FieldLabel(label: 'Code d\'Autorisation'),
                     const SizedBox(height: 7),
                     TextFormField(
                       controller: _authCodeController,
@@ -308,6 +309,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: ElevatedButton(
                                 onPressed: auth.isLoading ? null : _submit,
                                 style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4A90E2),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
                                 ),
                                 child: auth.isLoading
@@ -317,7 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                       )
                                     : Text(
-                                        'S\'INSCRIRE',
+                                        'S\'inscrire',
                                         style: GoogleFonts.dmSans(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
@@ -349,7 +351,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppTheme.primary,
+                                color:  const Color(0xFF9B59B6),
                               ),
                             ),
                           ),
@@ -373,6 +375,6 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(label, style: AppTheme.sectionLabel);
+    return Text(label, style: AppTheme.sectionLabel.copyWith(color: const Color(0xFF1A237E),));
   }
 }

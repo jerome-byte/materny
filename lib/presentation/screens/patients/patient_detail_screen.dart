@@ -60,7 +60,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           SliverAppBar(
             expandedHeight: 160,
             pinned: true,
-            backgroundColor: AppTheme.primary,
+            backgroundColor:Color.fromARGB(255, 74, 144, 226),
             elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
@@ -78,7 +78,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                    colors: [Color.fromARGB(255, 74, 144, 226),Color.fromARGB(255, 38, 114, 201)],
                   ),
                 ),
                 child: SafeArea(
@@ -289,7 +289,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                   // ── History ──────────────────────────────────────────────
                   _SectionHeader(
-                      title: 'Historique',
+                      title: 'Historique',                     
                       count: historyRdvs.length),
                   const SizedBox(height: 10),
 
@@ -347,7 +347,7 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppTheme.textTert),
+          Icon(icon, size: 18, color:AppTheme.primary),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

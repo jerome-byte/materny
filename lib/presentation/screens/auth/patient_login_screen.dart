@@ -200,14 +200,14 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                     const SizedBox(height: 28),
 
                     // Phone Input
-                                        // Phone Input
-                    TextFormField(
+                      TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
-                      decoration: const InputDecoration(
-                        hintText: 'Numéro de téléphone',
-                        prefixIcon: Icon(Icons.phone_outlined, size: 19),
+                      decoration: InputDecoration( // Suppression du 'const' pour le style
+                        hintText: 'Ex: +228 90 00 00 00', // Le placeholder
+                        hintStyle: GoogleFonts.dmSans(fontSize: 13, color: AppTheme.textTert),
+                        prefixIcon: const Icon(Icons.phone_outlined, size: 19),
                       ),
                     ),
 
@@ -253,7 +253,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen>
                         child: _isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
-                                'SE CONNECTER', // Texte fixe
+                                'Se connecter', // Texte fixe
                                 style: GoogleFonts.dmSans(
                                   fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.0,
                                 ),

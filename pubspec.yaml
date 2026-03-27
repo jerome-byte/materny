@@ -47,9 +47,9 @@ flutter:
 
   assets:
     - assets/logo.png
-    - assets/femme_enceinte.jpg
+    - assets/femme_enceinte.png
     - assets/maman_bebe.png
-    - assets/sage_femme.jpg
+    - assets/sage_femme.png
     
     
   # To add assets to your application, add an assets section, like this:

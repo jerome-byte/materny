@@ -45,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         heroTag: 'fab_dashboard',
         onPressed: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const AddPatientScreen())),
-        backgroundColor: AppTheme.primary,
+        backgroundColor: const Color(0xFF4A90E2),
         icon: const Icon(Icons.person_add_outlined, size: 20),
         label: Text(
           'Nouveau patient',
@@ -68,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             expandedHeight: 180,
             collapsedHeight: 60,
             pinned: true,
-            backgroundColor: AppTheme.primary,
+            backgroundColor: const Color(0xFF4A90E2),
             elevation: 0,
             actions: [
               IconButton(
@@ -94,7 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                    colors: [Color.fromARGB(255, 74, 144, 226),Color.fromARGB(255, 32, 102, 182)],
                   ),
                 ),
                 child: Stack(
@@ -144,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 children: [
                                   Icon(Icons.local_hospital_outlined,
                                       size: 13,
-                                      color: AppTheme.accent
+                                      color: Color.fromARGB(255, 228, 125, 219)
                                           .withValues(alpha: 0.8)),
                                   const SizedBox(width: 5),
                                   Text(

@@ -63,8 +63,8 @@ class _LoginScreenState extends State<LoginScreen>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF0D3324),
-                    Color(0xFF0A2A1C),
+                    Color.fromARGB(255, 74, 144, 226),
+                    Color.fromARGB(255, 228, 125, 219),
                   ],
                 ),
               ),
@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen>
                         height: 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.04),
+                          color: const Color.fromARGB(255, 243, 237, 237).withValues(alpha: 0.04),
                         ),
                       ),
                     ),
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppTheme.accent.withValues(alpha: 0.3),
+                            color:  Colors.white.withValues(alpha: 0.3),
                           ),
                         ),
                       ),
@@ -112,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
-                              color: AppTheme.accent.withValues(alpha: 0.6),
+                              color: const Color.fromARGB(255, 224, 114, 215).withValues(alpha: 0.6),
                               width: 2,
                             ),
                             color: Colors.white.withValues(alpha: 0.07),
@@ -189,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 28),
 
                         // Email
-                        _FieldLabel(label: 'ADRESSE EMAIL'),
+                        _FieldLabel(label: 'Adresse Email'),
                         const SizedBox(height: 7),
                         TextFormField(
                           controller: _emailController,
@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 16),
 
                         // Password
-                        _FieldLabel(label: 'MOT DE PASSE'),
+                        _FieldLabel(label: 'Mot de passe'),
                         const SizedBox(height: 7),
                         TextFormField(
                           controller: _passwordController,
@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen>
                               style: GoogleFonts.dmSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: AppTheme.primaryMid,
+                                color: const Color(0xFF7F8C8D),
                               ),
                             ),
                           ),
@@ -295,6 +295,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     onPressed:
                                         auth.isLoading ? null : _login,
                                     style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF4A90E2),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(13),
                                       ),
@@ -309,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen>
                                             ),
                                           )
                                         : Text(
-                                            'SE CONNECTER',
+                                            'Se connecter',
                                             style: GoogleFonts.dmSans(
                                               fontSize: 13,
                                               fontWeight: FontWeight.w700,
@@ -322,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen>
                             );
                           },
                         ),
-                         const SizedBox(height: 15),
+                         const SizedBox(height: 10),
 
                         // --- NOUVEAU : Bouton Retour ---
                         Center(
@@ -337,13 +338,13 @@ class _LoginScreenState extends State<LoginScreen>
                               "Retour",
                               style: GoogleFonts.dmSans(
                                 fontSize: 13,
-                                color: const Color.fromARGB(255, 10, 65, 32),
+                                color: const Color(0xFF4A90E2),
                               ),
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 10),
 
                         // Divider
                         Row(
@@ -361,7 +362,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ],
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Sign up
                         Center(
@@ -386,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   style: GoogleFonts.dmSans(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
-                                    color: AppTheme.primary,
+                                    color: const Color(0xFF9B59B6),
                                   ),
                                 ),
                               ),
@@ -444,6 +445,6 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(label, style: AppTheme.sectionLabel);
+    return Text(label, style: AppTheme.sectionLabel.copyWith(color: const Color(0xFF1A237E),));
   }
 }

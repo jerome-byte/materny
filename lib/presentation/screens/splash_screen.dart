@@ -144,7 +144,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primary,
+      backgroundColor: const Color.fromARGB(255, 74, 144, 226),
       body: AnimatedBuilder(
         animation: Listenable.merge([_bgController, _contentController]),
         builder: (context, _) {
@@ -160,9 +160,8 @@ class _SplashScreenState extends State<SplashScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF0D3324),
-                        Color(0xFF0A2A1C),
-                        Color(0xFF061810),
+                        Color.fromARGB(255, 74, 144, 226), Color.fromARGB(255, 74, 144, 226),
+                  
                       ],
                       stops: [0.0, 0.5, 1.0],
                     ),
@@ -205,7 +204,7 @@ class _SplashScreenState extends State<SplashScreen>
                   height: 320,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.accent.withValues(alpha: 0.08),
+                    color: const Color.fromARGB(255, 204, 11, 188).withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -241,7 +240,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Center(
                             child: Icon(
                               Icons.favorite_rounded,
-                              color: AppTheme.accent,
+                              color: const Color.fromARGB(255, 224, 114, 215),
                               size: 36,
                             ),
                           ),
@@ -302,7 +301,7 @@ class _SplashScreenState extends State<SplashScreen>
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.5,
-                          color: AppTheme.accent.withValues(alpha: 0.7),
+                          color: const Color.fromARGB(255, 224, 114, 215).withValues(alpha: 0.7),
                         ),
                       ),
                     ),

@@ -60,7 +60,7 @@ class _LandingScreenState extends State<LandingScreen>
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF0D3324), Color(0xFF0A2A1C)],
+                colors: [Color.fromARGB(255, 74, 144, 226), Color.fromARGB(255, 74, 144, 226)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -76,7 +76,7 @@ class _LandingScreenState extends State<LandingScreen>
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.03),
+                color: const Color.fromARGB(255, 42, 3, 182).withValues(alpha: 0.03),
               ),
             ),
           ),
@@ -88,7 +88,7 @@ class _LandingScreenState extends State<LandingScreen>
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.accent.withValues(alpha: 0.08),
+                color: const Color.fromARGB(255, 42, 3, 212).withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -125,7 +125,7 @@ class _LandingScreenState extends State<LandingScreen>
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
-                              color: AppTheme.accent.withValues(alpha: 0.6),
+                              color: const Color.fromARGB(255, 224, 114, 215).withValues(alpha: 0.6),
                               width: 2,
                             ),
                             color: Colors.white.withValues(alpha: 0.07),
@@ -171,13 +171,13 @@ class _LandingScreenState extends State<LandingScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               // Image 1: Femme Enceinte
-                              _buildImageCard('assets/femme_enceinte.jpg'),
+                              _buildImageCard('assets/femme_enceinte.png'),
                               
-                              // Image 2: Maman et Bébé
+                              // Image 2: sage femme
+                              _buildImageCard('assets/sage_femme.png'),
+                              
+                              // Image 3: Maman et Bébé
                               _buildImageCard('assets/maman_bebe.png'),
-                              
-                              // Image 3: Sage Femme
-                              _buildImageCard('assets/sage_femme.jpg'),
                             ],
                           ),
                         ),
@@ -221,7 +221,7 @@ class _LandingScreenState extends State<LandingScreen>
                                 child: OutlinedButton(
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Colors.white54, width: 1.5),
+                                    side: const BorderSide(color: Colors.white54, width: 2),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   ),
                                   onPressed: () {

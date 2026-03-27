@@ -47,7 +47,7 @@ class _StatsScreenState extends State<StatsScreen> {
               // ── App Bar ──────────────────────────────────────────────
               SliverAppBar(
                 pinned: true,
-                backgroundColor: AppTheme.primary,
+                 backgroundColor:Color.fromARGB(255, 74, 144, 226),
                 elevation: 0,
                 automaticallyImplyLeading: false,
                 title: Text(
@@ -94,7 +94,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFF0D3324), Color(0xFF1A5C3A)],
+                          colors: [Color.fromARGB(255, 51, 114, 185),Color.fromARGB(255, 39, 112, 196)],
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -153,7 +153,7 @@ class _StatsScreenState extends State<StatsScreen> {
                           child: _MiniStatCard(
                             label: 'Effectués',
                             value: provider.rdvEffectues.toString(),
-                            color: AppTheme.success,
+                            color:   const Color(0xFF1A237E),
                             bgColor: AppTheme.successSoft,
                             icon: Icons.check_circle_outline_rounded,
                           ),
@@ -240,7 +240,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                         _buildPieSection(
                                           value: provider.rdvEffectues
                                               .toDouble(),
-                                          color: AppTheme.success,
+                                          color:Color.fromARGB(255, 31, 44, 185),
                                           index: 0,
                                         ),
                                         _buildPieSection(
@@ -267,7 +267,7 @@ class _StatsScreenState extends State<StatsScreen> {
                                       MainAxisAlignment.spaceAround,
                                   children: [
                                     _ChartLegend(
-                                        color: AppTheme.success,
+                                        color: const Color(0xFF1A237E),
                                         label: 'Effectués',
                                         count: provider.rdvEffectues),
                                     _ChartLegend(

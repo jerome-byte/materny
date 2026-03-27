@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/patient_model.dart';
 import '../../providers/patient_provider.dart';
@@ -31,63 +30,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   String _selectedLanguage = 'Kabiyè';
   String? activeAlertKey;
 
-  final Map<String, Map<String, String>> _vaccines = {
-    'BCG': {
-      'name': 'BCG (Tuberculose)',
-      'risk': 'Protège contre la tuberculose, une maladie grave des poumons.',
-    },
-    'PENTA': {
-      'name': 'Pentavalent (DTP+Hib+HepB)',
-      'risk': 'Protège contre 5 maladies : Diphtérie, Tétanos, Coqueluche, Hépatite B, Méningite.',
-    },
-    'POLIO': {
-      'name': 'Polio (Poliomyélite)',
-      'risk': 'Protège contre la paralysie définitive des membres.',
-    },
-    'ROUGEOLE': {
-      'name': 'Rougeole',
-      'risk': 'Protège contre la rougeole, maladie très contagieuse et mortelle.',
-    },
-    'FIÈVRE JAUNE': {
-      'name': 'Fièvre Jaune',
-      'risk': 'Protège contre la fièvre hémorragique mortelle.',
-    },
-    'ROR': {
-      'name': 'ROR (Rougeole-Oreillons-Rubéole)',
-      'risk': 'Protège contre la rougeole, les oreillons et la rubéole.',
-    },
-  };
-
-    // --- NOUVEAU : Données des CPN ---
-  final Map<String, String> _cpnList = {
-    'CPN 1': 'Conséquences de l\'absence : Risque de ne pas détecter une grossesse extra-utérine ou des malformations précoces. Les carences (fer, acide folique) ne sont pas traitées, ce qui augmente le risque d\'anémie sévère et d\'anomalies du tube neural chez le fœtus.',
-    'CPN 2': 'Conséquences de l\'absence : Risque de passer à côté d\'une hypertension artérielle gravidique (prééclampsie) non diagnostiquée. Le fœtus peut souffrir d\'un retard de croissance intra-utérin qui ne sera pas détecté à temps.',
-    'CPN 3': 'Conséquences de l\'absence : Une infection urinaire ou un diabète gestationnel peut s\'aggraver sans symptômes visibles. L\'absence de prévention contre le paludisme expose la mère à une anémie grave et le bébé à un faible poids de naissance ou à une naissance prématurée.',
-    'CPN 4': 'Conséquences de l\'absence : Si le bébé est en siège ou s\'il y a un problème de placenta (placenta prævia), l\'absence de diagnostic peut entraîner des complications mortelles lors d\'un accouchement à domicile ou non préparé.',
-    'CPN 5': 'Conséquences de l\'absence : Risque élevé de dépassement de terme ou de complications de dernière minute (rupture prématurée des membranes, hémorragies) sans assistance médicale immédiate.',
-  };
-
-  String? _selectedCpnComment; // Variable pour stocker le commentaire à afficher
   
 
+ 
+
+ 
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _genre = widget.mother != null ? 'M' : 'F';
-
-    if (widget.mother != null) {
-      _nomController.text = widget.mother!.nom;
-      _telephoneController.text = widget.mother!.telephone;
-      _typeRdvController.text = "Vaccination";
-      _vaccineController.text = "BCG";
-    } else {
-      // MODE MÈRE
-      _typeRdvController.text = "CPN 1"; // Défaut CPN 1
-      _selectedCpnComment = _cpnList["CPN 1"]; // On charge le commentaire du CPN 1
-    }
-  }
+ 
 
   @override
   void dispose() {
@@ -101,77 +51,25 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDate() async {
-    final DateTime now = DateTime.now();
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(now.year + 5),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: AppTheme.primary),
-          ),
-          child: child!,
-        );
-      },
-    );
 
-    if (pickedDate != null && mounted) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: const TimeOfDay(hour: 9, minute: 0),
-        builder: (context, child) {
-          return Theme(
-            data: ThemeData.light().copyWith(
-              colorScheme: const ColorScheme.light(primary: AppTheme.primary),
-            ),
-            child: child!,
-          );
-        },
-      );
-
-      if (pickedTime != null && mounted) {
-        setState(() {
-          _selectedDateRdv = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
-      }
-    }
-  }
-  Future<void> _savePatientAndRdv() async {
+  Future<void> _savePatient() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_acceptPrivacy) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez accepter la politique de confidentialité.")),
+        const SnackBar(
+          content: Text("Veuillez accepter la politique de confidentialité."),
+        ),
       );
       return;
     }
 
-    if (_selectedDateRdv == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez sélectionner une date de rendez-vous.")),
-      );
-      return;
-    }
+   
 
     final typeRdvText = _typeRdvController.text.trim();
     final vaccineText = _vaccineController.text.trim();
-    final bool isChildMode = widget.mother != null;
-
-    if (isChildMode && typeRdvText.toLowerCase().contains('vaccination') && vaccineText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez saisir ou choisir un vaccin.")),
-      );
-      return;
-    }
+    
+    
 
     setState(() => _isLoading = true);
 
@@ -204,7 +102,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             title: Row(
               children: [
                 Icon(Icons.check_circle, color: AppTheme.success),
@@ -216,8 +116,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _genre == 'M' 
-                      ? "Enfant enregistré avec succès !" 
+                  _genre == 'M'
+                      ? "Enfant enregistré avec succès !"
                       : "Patiente enregistrée avec succès !",
                   textAlign: TextAlign.center,
                 ),
@@ -228,7 +128,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
@@ -249,12 +152,17 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                  ),
                   onPressed: () {
                     Navigator.pop(ctx); // Fermer la boîte
                     Navigator.pop(context); // Retour à la liste
                   },
-                  child: const Text("TERMINER", style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    "TERMINER",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
@@ -274,22 +182,17 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   Widget build(BuildContext context) {
     final bool isChildMode = widget.mother != null;
 
-    // Calcul de l'alerte active
-    activeAlertKey = null;
-    _vaccines.forEach((key, value) {
-      if (_vaccineController.text.toUpperCase().contains(key)) {
-        activeAlertKey = key;
-      }
-    });
-
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
         title: Text(
           isChildMode ? "Enregistrer un Enfant" : "Nouvelle Patiente",
-          style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: Colors.white),
+          style: GoogleFonts.dmSans(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: AppTheme.primary,
+        backgroundColor:Color.fromARGB(255, 74, 144, 226),
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
@@ -308,16 +211,24 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFFCEAF0),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFD4649A).withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: const Color(0xFFD4649A).withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.pregnant_woman_rounded, color: const Color(0xFFD4649A)),
+                      Icon(
+                        Icons.pregnant_woman_rounded,
+                        color: const Color(0xFFD4649A),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           "Mère : ${widget.mother!.prenom} ${widget.mother!.nom}",
-                          style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                          style: GoogleFonts.dmSans(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
                         ),
                       ),
                     ],
@@ -347,12 +258,12 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _StyledTextFormField(
+                                    _StyledTextFormField(
                     controller: _telephoneController,
                     label: 'Téléphone *',
-                    
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_outlined,
+                    hintText: 'Ex: +228 90 00 00 00', // NOUVEAU : Le placeholder
                   ),
                 ],
               ),
@@ -373,153 +284,16 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   _StyledTextFormField(
                     controller: _garantTelephoneController,
                     label: 'Téléphone garant',
-                    
+                     hintText: 'Ex: +228 90 00 00 00', // NOUVEAU : Le placeholder
                     keyboardType: TextInputType.phone,
                     prefixIcon: Icons.phone_in_talk_outlined,
                   ),
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
 
-              // ── Section RDV ─────────────────────────────────────────
-              _SectionLabel(label: 'RENDEZ-VOUS'),
-              const SizedBox(height: 10),
-              _FormCard(
-                children: [
-                  // Type RDV
-                                    // Type RDV (Modification CPN)
-                  Autocomplete<String>(
-                    initialValue: TextEditingValue(text: _typeRdvController.text),
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      // Si c'est une mère, on propose les CPN
-                      List<String> options = isChildMode 
-                          ? ['Vaccination', 'Autre'] 
-                          : [..._cpnList.keys, 'Autre']; // CPN 1, CPN 2... + Autre
-
-                      if (textEditingValue.text.isEmpty) return options;
-                      return options.where((opt) => opt.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-                    },
-                    onSelected: (String selection) {
-                      setState(() {
-                        _typeRdvController.text = selection;
-                        // Si c'est un CPN connu, on charge son commentaire
-                        if (_cpnList.containsKey(selection)) {
-                          _selectedCpnComment = _cpnList[selection];
-                        } else {
-                          _selectedCpnComment = null;
-                        }
-                      });
-                    },
-                    fieldViewBuilder: (ctx, controller, focusNode, onSubmitted) {
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
-                        decoration: _inputDecoration('Type de RDV *'),
-                        onChanged: (v) => _typeRdvController.text = v,
-                        validator: (v) => v!.isEmpty ? "Requis" : null,
-                      );
-                    },
-                  ),
-
-                  // --- NOUVEAU : Affichage du commentaire CPN ---
-                  if (_selectedCpnComment != null && !isChildMode) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.warningSoft,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.warning.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: AppTheme.warning, size: 20),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _selectedCpnComment!,
-                              style: GoogleFonts.dmSans(fontSize: 12, color: AppTheme.textSec),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  // -----------------------------------------------
-
-                  // Vaccine (Only if child)
-                  if (isChildMode && _typeRdvController.text.toLowerCase().contains('vaccination')) ...[
-                    const SizedBox(height: 12),
-                    Autocomplete<String>(
-                      initialValue: TextEditingValue(text: _vaccineController.text),
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        final options = _vaccines.keys.toList();
-                        if (textEditingValue.text.isEmpty) return options;
-                        return options.where((opt) => opt.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-                      },
-                      onSelected: (String selection) {
-                        setState(() => _vaccineController.text = selection);
-                      },
-                      fieldViewBuilder: (ctx, controller, focusNode, onSubmitted) {
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
-                          decoration: _inputDecoration('Nom du vaccin', fillColor: const Color(0xFFE6F0FB)),
-                          onChanged: (v) => setState(() => _vaccineController.text = v),
-                        );
-                      },
-                    ),
-
-                    // Alert
-                    if (activeAlertKey != null) ...[
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.warningSoft,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: AppTheme.warning, size: 20),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _vaccines[activeAlertKey]!['risk']!,
-                                style: GoogleFonts.dmSans(fontSize: 12, color: AppTheme.textSec),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-
-                  const SizedBox(height: 12),
-
-                  // Date Picker
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
-                        decoration: _inputDecoration(
-                          _selectedDateRdv == null
-                              ? 'Date et heure *'
-                              : DateFormat('dd/MM/yyyy à HH:mm').format(_selectedDateRdv!),
-                          prefixIcon: Icons.calendar_today_outlined,
-                        ),
-                        validator: (v) => _selectedDateRdv == null ? "Requis" : null,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
+            
 
               // ── Section Settings ────────────────────────────────────
               _SectionLabel(label: 'PRÉFÉRENCES'),
@@ -531,35 +305,51 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: Text(
                       "J'accepte que mes informations soient enregistrées et utilisées pour les rappels.",
-                      style: GoogleFonts.dmSans(fontSize: 13, color: AppTheme.textSec),
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        color: AppTheme.textSec,
+                      ),
                     ),
                     value: _acceptPrivacy,
                     activeColor: AppTheme.primary,
-                    onChanged: (v) => setState(() => _acceptPrivacy = v ?? false),
+                    onChanged: (v) =>
+                        setState(() => _acceptPrivacy = v ?? false),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
-                  
+
                   const Divider(height: 24),
 
                   // Channel Dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedChannel,
-                    style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: AppTheme.textPrimary,
+                    ),
                     decoration: _inputDecoration('Canaux de rappel'),
                     items: const [
                       DropdownMenuItem(value: 'SMS', child: Text("SMS")),
-                      DropdownMenuItem(value: 'Notification', child: Text("Notification")),
-                      DropdownMenuItem(value: 'Appel', child: Text("Appel téléphonique")),
+                      DropdownMenuItem(
+                        value: 'Notification',
+                        child: Text("Notification"),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Appel',
+                        child: Text("Appel téléphonique"),
+                      ),
                     ],
                     onChanged: (v) => setState(() => _selectedChannel = v!),
                   ),
-                  
+
                   const SizedBox(height: 12),
 
                   // Language Dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedLanguage,
-                    style: GoogleFonts.dmSans(fontSize: 14, color: AppTheme.textPrimary),
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: AppTheme.textPrimary,
+                    ),
                     decoration: _inputDecoration('Langue de rappel'),
                     items: const [
                       DropdownMenuItem(value: 'Kabiyè', child: Text("Kabiyè")),
@@ -568,10 +358,19 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                       DropdownMenuItem(value: 'Ife', child: Text("Ife")),
                       DropdownMenuItem(value: 'Tem', child: Text("Tem")),
                       DropdownMenuItem(value: 'Moba', child: Text("Moba")),
-                      DropdownMenuItem(value: 'Ouatchi', child: Text("Ouatchi")),
+                      DropdownMenuItem(
+                        value: 'Ouatchi',
+                        child: Text("Ouatchi"),
+                      ),
                       DropdownMenuItem(value: 'Lama', child: Text("Lama")),
-                      DropdownMenuItem(value: 'Français', child: Text("Français")),
-                      DropdownMenuItem(value: 'Anglais', child: Text("Anglais")),
+                      DropdownMenuItem(
+                        value: 'Français',
+                        child: Text("Français"),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Anglais',
+                        child: Text("Anglais"),
+                      ),
                     ],
                     onChanged: (v) => setState(() => _selectedLanguage = v!),
                   ),
@@ -586,13 +385,18 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                 height: 52,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                   backgroundColor:Color.fromARGB(255, 74, 144, 226),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     elevation: 0,
                   ),
-                  onPressed: _isLoading ? null : _savePatientAndRdv,
+                  onPressed: _isLoading ? null : _savePatient,
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
                       : Text(
                           'ENREGISTRER',
                           style: GoogleFonts.dmSans(
@@ -613,13 +417,19 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   // --- Helper Widgets for Styling ---
 
-  InputDecoration _inputDecoration(String label, {IconData? prefixIcon, Color? fillColor}) {
+  InputDecoration _inputDecoration(
+    String label, {
+    IconData? prefixIcon,
+    Color? fillColor,
+  }) {
     return InputDecoration(
       labelText: label,
       labelStyle: GoogleFonts.dmSans(fontSize: 13, color: AppTheme.textTert),
       filled: true,
       fillColor: fillColor ?? AppTheme.surface,
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppTheme.textTert) : null,
+      prefixIcon: prefixIcon != null
+          ? Icon(prefixIcon, size: 20, color: AppTheme.textTert)
+          : null,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -678,12 +488,15 @@ class _StyledTextFormField extends StatelessWidget {
   final String label;
   final IconData? prefixIcon;
   final TextInputType? keyboardType;
+  final String? hintText; // NOUVEAU : Paramètre pour le placeholder
+
 
   const _StyledTextFormField({
     required this.controller,
     required this.label,
     this.prefixIcon,
     this.keyboardType,
+     this.hintText, // NOUVEAU
   });
 
   @override
@@ -695,10 +508,16 @@ class _StyledTextFormField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.dmSans(fontSize: 13, color: AppTheme.textTert),
+         hintText: hintText, // NOUVEAU : On l'utilise ici
         filled: true,
         fillColor: AppTheme.surface,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppTheme.textTert) : null,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, size: 20, color: AppTheme.textTert)
+            : null,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
